@@ -9,6 +9,7 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 var net = require('net');
 
+console.log(req.headers['x-forwarded-for'] || req.socket.remoteAddress );
 
 const html = `
 <!DOCTYPE html>
