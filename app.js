@@ -8,6 +8,7 @@ app.get("/", (req, res) => {
   if (ip.substr(0, 7) == "::ffff:") {
     ip = ip.substr(7)
   }
+  ip = ip.split(',');
 
   console.log(ip);
 
