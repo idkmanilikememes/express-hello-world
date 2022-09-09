@@ -2,8 +2,10 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
 
+var ip = 0;
+
 app.get("/", (req, res) => {
-  console.log(req.ip)
+  ip = req.ip
 
   res.type('html').send(html)
 });
@@ -58,7 +60,7 @@ const html = `
   </head>
   <body>
     <section>
-      Hello Bitch!
+      `+String(ip)+`
     </section>
   </body>
 </html>
