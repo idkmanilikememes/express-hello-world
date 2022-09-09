@@ -1,11 +1,15 @@
 const express = require("express");
 const app = express();
+app.set('trust proxy', true);
 const port = process.env.PORT || 3001;
 
 var ip = 0;
 
 app.get("/", (req, res) => {
-  ip = req.ip
+  ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  if (ip.substr(0, 7) == "::ffff:") {
+    ip = ip.substr(7)
+  }
 
   res.type('html').send(html)
 });
