@@ -8,6 +8,7 @@ const usernames = []
 const messages = []
 
 app.set('trust proxy', true);
+process.env.PORT = 3001;
 const port = process.env.PORT || 3001;
 app.use(express.static(__dirname + '/resources'));
 
@@ -68,7 +69,7 @@ function dbquery(query) {
   //query function for all queries to user db
 }
 
-
+process.env.PORT = 3080;
 //socket.io server crap
   const io = require('socket.io')(3080)
 
