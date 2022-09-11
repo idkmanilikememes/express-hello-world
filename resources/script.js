@@ -1,4 +1,4 @@
-const socket = io('https://derp45.onrender.com:3080/')
+const socket = io('http://localhost:3001/')
 const messageForm = document.getElementById('send-container')
 const messageContainer = document.getElementById('message-container')
 const messageInput = document.getElementById('message-input')
@@ -10,13 +10,11 @@ socket.on('chat-message', data => {
   appendMessage(data)
 })
 
-socket.on('connected', data => {
-  if (getCookie("session-id") !== null) {
-    socket.emit('check-cookies', getCookie("session-id"))
-  } else {
-    socket.emit('check-cookies', "hi i'm new")
-  }
-})
+if (getCookie("session-id") !== null) {
+  socket.emit('check-cookies', getCookie("session-id"))
+} else {
+  socket.emit('check-cookies', "hi i'm new")
+}
 
 socket.on('new-connection', data => {
   messageContainer.innerHTML = "";
@@ -26,28 +24,33 @@ socket.on('new-connection', data => {
   document.cookie = "";
   messageBox.innerHTML = '<br><div class="alert alert-danger" role="alert">you must be <a style="color: inherit;" href="/login">logged in</a> to use chat</div>'
 
+  console.log('broken')
+  //onlineUsersBox.innerHTML = "";
   for (var i = 0; i < data.users.length; i++) {
-    if (i % 6 === 0 && i !== 0) { //break after 6
-      linebreak = document.createElement("br");
-      onlineUsersBox.appendChild(linebreak);
+    console.log(data.users[i])
+    if (data.users[i]) {
+      if (i % 6 === 0 && i !== 0) { //break after 6
+        linebreak = document.createElement("br");
+        onlineUsersBox.appendChild(linebreak);
+      }
+      imgcontainer = document.createElement('div')
+      imgcontainer.style = 'display: inline';
+      imgcontainer.classList.add('cont');
+      img = document.createElement('img')
+      img.src = 'default.png';
+      img.style = 'background-color:'+getRandomColor()+';height:50px;border-radius: 50%;';
+      imgoverlay = document.createElement('div')
+      imgoverlay.classList.add('overlay')
+      imgoverlay.style = 'display: inline'
+      imgoverlaytext = document.createElement('div')
+      imgoverlaytext.style = 'display: inline'
+      imgoverlaytext.classList.add('text')
+      imgoverlaytext.innerText = data.usersnames[i]
+      imgoverlay.append(imgoverlaytext)
+      imgcontainer.append(imgoverlay)
+      imgcontainer.append(img)
+      onlineUsersBox.append(imgcontainer)
     }
-    imgcontainer = document.createElement('div')
-    imgcontainer.style = 'display: inline';
-    imgcontainer.classList.add('cont');
-    img = document.createElement('img')
-    img.src = 'default.png';
-    img.style = 'background-color:'+getRandomColor()+';height:50px;border-radius: 50%;';
-    imgoverlay = document.createElement('div')
-    imgoverlay.classList.add('overlay')
-    imgoverlay.style = 'display: inline'
-    imgoverlaytext = document.createElement('div')
-    imgoverlaytext.style = 'display: inline'
-    imgoverlaytext.classList.add('text')
-    imgoverlaytext.innerText = data.users[i]
-    imgoverlay.append(imgoverlaytext)
-    imgcontainer.append(imgoverlay)
-    imgcontainer.append(img)
-    onlineUsersBox.append(imgcontainer)
   }
   
 })
@@ -58,8 +61,9 @@ socket.on('old-connection', data => {
   for (var i = 0; i <= data.messages.length-1; i++) {
     appendMessage(data.messages[i]);
   }
-
-  for (var i = 0; i < data.users.length; i++) {
+  
+  //onlineUsersBox.innerHTML = "";
+  for (var i = 0; i < 20; i++) {
     if (i % 6 === 0 && i !== 0) { //break after 6
       linebreak = document.createElement("br");
       onlineUsersBox.appendChild(linebreak);
@@ -76,7 +80,7 @@ socket.on('old-connection', data => {
     imgoverlaytext = document.createElement('div')
     imgoverlaytext.style = 'display: inline'
     imgoverlaytext.classList.add('text')
-    imgoverlaytext.innerText = data.users[i]
+    imgoverlaytext.innerText = data.usersnames[i]
     imgoverlay.append(imgoverlaytext)
     imgcontainer.append(imgoverlay)
     imgcontainer.append(img)
@@ -107,10 +111,10 @@ function getCookie(name) {
 }
 
 function getRandomColor() {
-  var letters = '23456789ABCD';
+  var letters = '456789ABCD';
   var color = '#';
   for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 12)];
+    color += letters[Math.floor(Math.random() * 10)];
   }
   return color;
 }

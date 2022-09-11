@@ -1,26 +1,25 @@
+//main server dependences
 const express = require("express");
+const app = express();
+app.use(express.static(__dirname + '/resources'));
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+var xssFilters = require('xss-filters'); //sanatizer
+
 const cookie = require("cookie")
 const path = require('path');
-const app = express();
 
 const users = []
 const usernames = []
 const messages = []
+const socketids = []
 
 app.set('trust proxy', true);
-process.env.PORT = 3001;
-const port = process.env.PORT || 3001;
-app.use(express.static(__dirname + '/resources'));
+process.env.PORT = 3001
 
 app.get("/", (req, res) => { //main page
-  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  if (ip.substr(0, 7) == "::ffff:") {
-    ip = ip.substr(7)
-  }
-  ip = ip.split(',')[0];
-
-  console.log(ip);
-
   res.sendFile(path.join(__dirname , 'resources', 'index.html'));
 });
 
@@ -34,9 +33,6 @@ app.get("/register", (req, res) => { //register page
   res.sendFile(path.join(__dirname , 'resources', 'register.html'));
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-console.log("dwwqwqwq")
-
 
 //this is database shit, initiallisign ing it
   const { Client } = require('pg');
@@ -45,9 +41,9 @@ console.log("dwwqwqwq")
   })
   database.connect(err => { //connect to db
     if (err) {
-      console.error('connection error', err.stack)
+      console.error('db connection error', err.stack)
     } else {
-      console.log('connected')
+      console.log('db connected')
     }
   })
 
@@ -69,28 +65,31 @@ function dbquery(query) {
   //query function for all queries to user db
 }
 
-process.env.PORT = 3080;
 //socket.io server crap
-  const io = require('socket.io')(3080)
-
   io.on('connection', socket => {
 
-    socket.emit('connected', 'derp')
+    socket.on('disconnect', data => {
+      if (socketids.includes(socket.id)) {
+        socketids[socketids.indexOf[socket.id]] = null;
+        socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
+      }
+    })
 
     socket.on('check-cookies', cookie => {
-      if (users.includes(cookie)) {
-        socket.emit('old-connection',{messages: messages, users: usernames})
+      if (users.includes(xssFilters.inHTMLData(cookie))) {
+        socketids[users.indexOf(xssFilters.inHTMLData(cookie))] = socket.id;
+        socket.emit('old-connection',{messages: messages, users: socketids, usernames: usernames})
       } else {
-        socket.emit('new-connection',{messages: messages, users: usernames})
+        socket.emit('new-connection',{messages: messages, users: socketids, usernames: usernames})
       }
     })
     
     socket.on('login', creds => { //log a user in mate
       //check that user exists in database
-      database.query({text: `SELECT * FROM toads WHERE handle = '`+creds['username']+`';`,}).then(res => {
+      database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(res => {
         userinfo = res.rows[0]; //set userinfo to the first row of query
         if (userinfo !== undefined) {
-          if (creds['password'] == userinfo['password']) {
+          if (xssFilters.inHTMLData(creds['password']) == userinfo['password']) {
             //console.log('successfully logged in')
             //successfully logged in
             const cookie = makeid(30) //set id cookie of user
@@ -98,8 +97,9 @@ process.env.PORT = 3080;
               cookie = makeid(30)
             }
             users.push(cookie);
-            usernames.push(creds['username']);
-            socket.emit('logged-in',{cookie: cookie, name: creds['username']})
+            socketids.push(socket.id);
+            usernames.push(xssFilters.inHTMLData(creds['username']));
+            socket.emit('logged-in',{cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
           } else {
             //console.log('wrong password dumby')
             //wrong password
@@ -115,7 +115,7 @@ process.env.PORT = 3080;
 
     socket.on('register', creds => { //register new user
       //check that user exists in database
-      if (creds['password1'] == creds['password2']) { //check both passwords are equal
+      if (xssFilters.inHTMLData(creds['password1']) == xssFilters.inHTMLData(creds['password2'])) { //check both passwords are equal
         //add user to database with sql query
         database.query({text: `INSERT INTO toads(handle,ip,nname,password) VALUES($1,$2,$3,$4)`, values: [creds['username'], String(socket.handshake.address), creds['username'], creds['password1']]})
         
@@ -124,8 +124,9 @@ process.env.PORT = 3080;
           cookie = makeid(30)
         }
         users.push(cookie);
-        usernames.push(creds['username']);
-        socket.emit('logged-in',{cookie: cookie, name: creds['username']})
+        socketids.push(socket.id);
+        usernames.push(xssFilters.inHTMLData(creds['username']));
+        socket.emit('logged-in',{cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
         console.log(database.query({text: `SELECT * FROM toads`}));
       }
     })
@@ -133,9 +134,9 @@ process.env.PORT = 3080;
     //socket.emit('chat-message','Hello buddy, welcome to the toadchat.')
 
     socket.on('send-chat-message', message => { //message recieved
-      var cookies = cookie.parse(socket.handshake.headers.cookie);
+      var cookies = cookie.parse(xssFilters.inHTMLData(socket.handshake.headers.cookie));
       if (cookies['session-id'] !== null && users.includes(cookies['session-id'])) {
-        message = usernames[users.indexOf(cookies['session-id'])]+": "+message;
+        message = usernames[users.indexOf(cookies['session-id'])]+": "+xssFilters.inHTMLData(message);
         console.log(message)
         socket.emit('chat-message', message)
         socket.broadcast.emit('chat-message', message)
@@ -144,6 +145,10 @@ process.env.PORT = 3080;
     })
   })
 
+
+server.listen(process.env.PORT, () => {
+  console.log('listening on *:3001');
+});
 
 function makeid(length) {
     var result           = '';
