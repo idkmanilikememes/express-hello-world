@@ -1,4 +1,4 @@
-const socket = io('http://localhost:3080/')
+const socket = io('https://derp45.onrender.com:3080/')
 const RegisterForm = document.getElementById('register-forum')
 const usernameInput = document.getElementById('input-username')
 const password1Input = document.getElementById('input-password1')

@@ -78,9 +78,9 @@ function dbquery(query) {
 
     socket.on('check-cookies', cookie => {
       if (users.includes(cookie)) {
-        socket.emit('old-connection',messages)
+        socket.emit('old-connection',{messages: messages, users: usernames})
       } else {
-        socket.emit('new-connection',messages)
+        socket.emit('new-connection',{messages: messages, users: usernames})
       }
     })
     

@@ -39,6 +39,39 @@
           vertical-align: top;
           padding: 0 15px;
         }
+
+        .overlay {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 100%;
+          width: 100%;
+          opacity: 0;
+          transition: .1s ease;
+        }
+
+        .cont {
+          position: relative;
+          width: 50%;
+        }
+
+        .cont:hover .overlay {
+          opacity: 1;
+        }
+
+        .text {
+          color: white;
+          font-size: 20px;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          -webkit-transform: translate(-50%, -50%);
+          -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+          text-align: center;
+        }
       </style>
     </head>
     <body>
@@ -47,7 +80,7 @@
           <table>
             <tr>
               <td style="width:400px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tortor nulla, fermentum eget orci vel, porttitor ullamcorper elit. Morbi eu malesuada elit, vitae pellentesque tortor. Mauris id pellentesque massa. Nunc blandit ante vitae nulla fermentum, nec ornare urna pellentesque. Cras commodo nulla in congue viverra. Etiam sit amet sapien eget tortor tincidunt mattis. Quisque ultrices aliquet est et condimentum.</td>
-              <td style="width:400px;" rowspan="2">
+              <td style="width:400px; height: 400px; vertical-align: bottom;" rowspan="2">
                 <div class="overflow-auto" style="display: flex; flex-direction: column-reverse; max-width: 1000px; max-height: 400px">
                   <div id="message-container" style="font-family: Arial"></div>
                 </div>
@@ -60,7 +93,12 @@
                 </div>
               </td>
             </tr>
-            <tr><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tortor nulla, fermentum eget orci vel, porttitor ullamcorper elit.</td></tr>
+            <tr><td>
+              People Online:
+              <div id="online-users" class="overflow-auto" style="min-width: 200px; max-height: 50px">
+                
+              </div>
+            </td></tr>
           </table>
         </div>
       </div>
