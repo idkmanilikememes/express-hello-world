@@ -12,7 +12,7 @@ socket.on('logged-in', data => {
     error.innerHTML = '<br><div class="alert alert-danger" role="alert">'+data['reason']+'</div>'
   } else {
     error.innerHTML = '<br><div class="alert alert-success" role="alert"> registered successfully. redirecting back home </div>'
-    setInterval(function(){location.replace("https://derp45.onrender.com/")},2000);
+    setInterval(function(){location.replace("https://derp45.onrender.com/")},500);
     document.cookie = "session-id="+data.cookie;
     document.cookie = "name="+data.name;
   }
