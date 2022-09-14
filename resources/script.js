@@ -1,14 +1,9 @@
-const socket = io('http://localhost:3001/')
+const socket = io('https://derp45.onrender.com:3001/')
 const messageForm = document.getElementById('send-container')
 const messageContainer = document.getElementById('message-container')
 const messageInput = document.getElementById('message-input')
 const messageBox = document.getElementById('message-box')
 const onlineUsersBox = document.getElementById('online-users')
-
-socket.on('chat-message', data => {
-  //console.log(data)
-  appendMessage(data)
-})
 
 if (getCookie("session-id") !== null) {
   socket.emit('check-cookies', getCookie("session-id"))
@@ -24,11 +19,9 @@ socket.on('new-connection', data => {
   document.cookie = "";
   messageBox.innerHTML = '<br><div class="alert alert-danger" role="alert">you must be <a style="color: inherit;" href="/login">logged in</a> to use chat</div>'
 
-  console.log('broken')
-  //onlineUsersBox.innerHTML = "";
-  for (var i = 0; i < data.users.length; i++) {
-    console.log(data.users[i])
-    if (data.users[i]) {
+  onlineUsersBox.innerHTML = "";
+  for (var i = 0; i < data['users'].length; i++) {
+    if (data['users'][i] !== null) {
       if (i % 6 === 0 && i !== 0) { //break after 6
         linebreak = document.createElement("br");
         onlineUsersBox.appendChild(linebreak);
@@ -45,14 +38,13 @@ socket.on('new-connection', data => {
       imgoverlaytext = document.createElement('div')
       imgoverlaytext.style = 'display: inline'
       imgoverlaytext.classList.add('text')
-      imgoverlaytext.innerText = data.usersnames[i]
+      imgoverlaytext.innerText = String(data['usernames'][i])
       imgoverlay.append(imgoverlaytext)
       imgcontainer.append(imgoverlay)
       imgcontainer.append(img)
       onlineUsersBox.append(imgcontainer)
     }
   }
-  
 })
 
 socket.on('old-connection', data => {
@@ -61,30 +53,62 @@ socket.on('old-connection', data => {
   for (var i = 0; i <= data.messages.length-1; i++) {
     appendMessage(data.messages[i]);
   }
-  
-  //onlineUsersBox.innerHTML = "";
-  for (var i = 0; i < 20; i++) {
-    if (i % 6 === 0 && i !== 0) { //break after 6
-      linebreak = document.createElement("br");
-      onlineUsersBox.appendChild(linebreak);
+  console.log(data)
+
+  onlineUsersBox.innerHTML = "";
+  for (var i = 0; i < data['users'].length; i++) {
+    if (data['users'][i] !== null) {
+      if (i % 6 === 0 && i !== 0) { //break after 6
+        linebreak = document.createElement("br");
+        onlineUsersBox.appendChild(linebreak);
+      }
+      imgcontainer = document.createElement('div')
+      imgcontainer.style = 'display: inline';
+      imgcontainer.classList.add('cont');
+      img = document.createElement('img')
+      img.src = 'default.png';
+      img.style = 'background-color:'+getRandomColor()+';height:50px;border-radius: 50%;';
+      imgoverlay = document.createElement('div')
+      imgoverlay.classList.add('overlay')
+      imgoverlay.style = 'display: inline'
+      imgoverlaytext = document.createElement('div')
+      imgoverlaytext.style = 'display: inline'
+      imgoverlaytext.classList.add('text')
+      imgoverlaytext.innerText = String(data['usernames'][i])
+      imgoverlay.append(imgoverlaytext)
+      imgcontainer.append(imgoverlay)
+      imgcontainer.append(img)
+      onlineUsersBox.append(imgcontainer)
     }
-    imgcontainer = document.createElement('div')
-    imgcontainer.style = 'display: inline';
-    imgcontainer.classList.add('cont');
-    img = document.createElement('img')
-    img.src = 'default.png';
-    img.style = 'background-color:'+getRandomColor()+';height:50px;border-radius: 50%;';
-    imgoverlay = document.createElement('div')
-    imgoverlay.classList.add('overlay')
-    imgoverlay.style = 'display: inline'
-    imgoverlaytext = document.createElement('div')
-    imgoverlaytext.style = 'display: inline'
-    imgoverlaytext.classList.add('text')
-    imgoverlaytext.innerText = data.usersnames[i]
-    imgoverlay.append(imgoverlaytext)
-    imgcontainer.append(imgoverlay)
-    imgcontainer.append(img)
-    onlineUsersBox.append(imgcontainer)
+  }
+})
+
+socket.on('update-onlines', data => {
+  onlineUsersBox.innerHTML = "";
+  for (var i = 0; i < data['users'].length; i++) {
+    if (data['users'][i] !== null) {
+      if (i % 6 === 0 && i !== 0) { //break after 6
+        linebreak = document.createElement("br");
+        onlineUsersBox.appendChild(linebreak);
+      }
+      imgcontainer = document.createElement('div')
+      imgcontainer.style = 'display: inline';
+      imgcontainer.classList.add('cont');
+      img = document.createElement('img')
+      img.src = 'default.png';
+      img.style = 'background-color:'+getRandomColor()+';height:50px;border-radius: 50%;';
+      imgoverlay = document.createElement('div')
+      imgoverlay.classList.add('overlay')
+      imgoverlay.style = 'display: inline'
+      imgoverlaytext = document.createElement('div')
+      imgoverlaytext.style = 'display: inline'
+      imgoverlaytext.classList.add('text')
+      imgoverlaytext.innerText = String(data['usernames'][i])
+      imgoverlay.append(imgoverlaytext)
+      imgcontainer.append(imgoverlay)
+      imgcontainer.append(img)
+      onlineUsersBox.append(imgcontainer)
+    }
   }
 })
 
@@ -98,6 +122,12 @@ messageForm.addEventListener('submit', e => {
   messageInput.value = ''
 })
 
+socket.on('chat-message', data => {
+  //console.log(data)
+  appendMessage(data)
+})
+
+//epic functions
 function appendMessage(message) {
   const messageElement = document.createElement('div')
   messageElement.innerText = message

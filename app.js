@@ -70,17 +70,24 @@ function dbquery(query) {
 
     socket.on('disconnect', data => {
       if (socketids.includes(socket.id)) {
-        socketids[socketids.indexOf[socket.id]] = null;
+        console.log(socketids)
+        console.log(usernames[socketids.indexOf(socket.id)]+' just left NO')
+        socketids[socketids.indexOf(socket.id)] = null;
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
+        console.log(socketids)
       }
     })
 
     socket.on('check-cookies', cookie => {
       if (users.includes(xssFilters.inHTMLData(cookie))) {
         socketids[users.indexOf(xssFilters.inHTMLData(cookie))] = socket.id;
+        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES')
+        console.log(socketids)
         socket.emit('old-connection',{messages: messages, users: socketids, usernames: usernames})
+        socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
       } else {
         socket.emit('new-connection',{messages: messages, users: socketids, usernames: usernames})
+        socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
       }
     })
     
@@ -99,16 +106,16 @@ function dbquery(query) {
             users.push(cookie);
             socketids.push(socket.id);
             usernames.push(xssFilters.inHTMLData(creds['username']));
-            socket.emit('logged-in',{cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
+            socket.emit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
           } else {
             //console.log('wrong password dumby')
             //wrong password
-            socket.emit('logged-in',false)
+            socket.emit('logged-in',{success: false, reason: 'wrong password dumby'})
           }
         } else {
           //console.log('user does not exist')
           //user does not exist
-          socket.emit('logged-in',false)
+          socket.emit('logged-in',{success: false, reason: 'that user does not exist moron'})
         }
       })
     })
@@ -116,18 +123,33 @@ function dbquery(query) {
     socket.on('register', creds => { //register new user
       //check that user exists in database
       if (xssFilters.inHTMLData(creds['password1']) == xssFilters.inHTMLData(creds['password2'])) { //check both passwords are equal
-        //add user to database with sql query
-        database.query({text: `INSERT INTO toads(handle,ip,nname,password) VALUES($1,$2,$3,$4)`, values: [creds['username'], String(socket.handshake.address), creds['username'], creds['password1']]})
-        
-        const cookie = makeid(30) //set id cookie of user
-        while (users.includes(cookie)) { //make sure not already in use
-          cookie = makeid(30)
-        }
-        users.push(cookie);
-        socketids.push(socket.id);
-        usernames.push(xssFilters.inHTMLData(creds['username']));
-        socket.emit('logged-in',{cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
-        console.log(database.query({text: `SELECT * FROM toads`}));
+        //check if ip has already registered
+        database.query({text: `SELECT * FROM toads WHERE ip = '`+String(socket.handshake.address)+`';`,}).then(res => {
+          if (res.rows[0] == undefined) {
+            database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(fes => {
+              if (fes.rows[0] == undefined) {
+                //add user to database with sql query
+                database.query({text: `INSERT INTO toads(handle,ip,nname,password) VALUES($1,$2,$3,$4)`, values: [xssFilters.inHTMLData(creds['username']), String(socket.handshake.address), creds['username'], creds['password1']]})
+                
+                const cookie = makeid(30) //set id cookie of user
+                while (users.includes(cookie)) { //make sure not already in use
+                  cookie = makeid(30)
+                }
+                users.push(cookie);
+                socketids.push(socket.id);
+                usernames.push(xssFilters.inHTMLData(creds['username']));
+                socket.emit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
+                console.log(database.query({text: `SELECT * FROM toads`}));
+              } else {
+                socket.emit('logged-in',{success: false, reason: 'handle already taken, sorry king!'})
+              }
+            })
+          } else {
+            socket.emit('logged-in',{success: false, reason: 'do not make more than one account please '+res.rows[0]['handle']})
+          }
+        })
+      } else {
+        socket.emit('logged-in',{success: false, reason: 'passwords do not match idiot'})
       }
     })
 
