@@ -1,4 +1,4 @@
-const socket = io('https://derp45.onrender.com/')
+const socket = io('localhost:3001')
 const LoginForm = document.getElementById('login-forum')
 const usernameInput = document.getElementById('input-username')
 const passwordInput = document.getElementById('input-password')
@@ -13,7 +13,7 @@ socket.on('logged-in', data => {
 
   } else {
     error.innerHTML = '<br><div class="alert alert-success" role="alert"> logged in successfully. redirecting back home </div>'
-    setInterval(function(){location.replace("https://derp45.onrender.com/")},500);
+    setInterval(function(){location.replace("localhost:3001")},500);
     document.cookie = "session-id="+data.cookie;
     document.cookie = "name="+data.name;
   }

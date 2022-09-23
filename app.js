@@ -16,7 +16,6 @@ const usernames = []
 const messages = []
 const socketids = []
 
-app.set('trust proxy', true);
 process.env.PORT = 3001
 
 app.get("/", (req, res) => { //main page
@@ -24,13 +23,15 @@ app.get("/", (req, res) => { //main page
 });
 
 app.get("/login", (req, res) => { //login page
-  //res.type('html').send('ello')
   res.sendFile(path.join(__dirname , 'resources', 'login.html'));
 });
 
 app.get("/register", (req, res) => { //register page
-  //res.type('html').send('ello')
   res.sendFile(path.join(__dirname , 'resources', 'register.html'));
+});
+
+app.get("/jackquest", (req, res) => { //register page
+  res.sendFile(path.join(__dirname , 'resources', 'games/jackquest/index.html'));
 });
 
 
