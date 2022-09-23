@@ -125,8 +125,8 @@ function dbquery(query) {
       //check that user exists in database
       if (xssFilters.inHTMLData(creds['password1']) == xssFilters.inHTMLData(creds['password2'])) { //check both passwords are equal
         //check if ip has already registered
-        database.query({text: `SELECT * FROM toads WHERE ip = '`+String(socket.handshake.address)+`';`,}).then(res => {
-          if (res.rows[0] == undefined) {
+        //database.query({text: `SELECT * FROM toads WHERE ip = '`+String(socket.handshake.address)+`';`,}).then(res => {
+          //if (res.rows[0] == undefined) {
             database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(fes => {
               if (fes.rows[0] == undefined) {
                 //add user to database with sql query
@@ -145,10 +145,10 @@ function dbquery(query) {
                 socket.emit('logged-in',{success: false, reason: 'handle already taken, sorry king!'})
               }
             })
-          } else {
-            socket.emit('logged-in',{success: false, reason: 'do not make more than one account please '+res.rows[0]['handle']})
-          }
-        })
+          //} else {
+          //  socket.emit('logged-in',{success: false, reason: 'do not make more than one account please '+res.rows[0]['handle']})
+          //}
+        //})
       } else {
         socket.emit('logged-in',{success: false, reason: 'passwords do not match idiot'})
       }
