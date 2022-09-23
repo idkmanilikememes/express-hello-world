@@ -1,4 +1,4 @@
-const socket = io('https://derp45.onrender.com/')
+const socket = io('https://toadforums.com/')
 const messageForm = document.getElementById('send-container')
 const messageContainer = document.getElementById('message-container')
 const messageInput = document.getElementById('message-input')
