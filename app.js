@@ -48,18 +48,13 @@ app.get("/jackquest", (req, res) => { //register page
     }
   })
 
-//dbquery({
-//  text: `SELECT * FROM ips`,
-//})
-
 function dbquery(query) {
   var result
   database.query(query, (err, res) => {
     if (err) {
-      //console.log(err.stack)
+      console.log(err.stack)
     } else {
-      //console.log(res.rows[0])
-      result = res.rows[0];
+      console.log(res)
     }
   })
   return result
@@ -123,35 +118,39 @@ function dbquery(query) {
 
     socket.on('register', creds => { //register new user
       //check that user exists in database
-      if (xssFilters.inHTMLData(creds['password1']) == xssFilters.inHTMLData(creds['password2'])) { //check both passwords are equal
-        //check if ip has already registered
-        //database.query({text: `SELECT * FROM toads WHERE ip = '`+String(socket.handshake.address)+`';`,}).then(res => {
-          //if (res.rows[0] == undefined) {
-            database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(fes => {
-              if (fes.rows[0] == undefined) {
-                //add user to database with sql query
-                database.query({text: `INSERT INTO toads(handle,ip,nname,password) VALUES($1,$2,$3,$4)`, values: [xssFilters.inHTMLData(creds['username']), String(socket.handshake.address), creds['username'], creds['password1']]})
-                
-                const cookie = makeid(30) //set id cookie of user
-                while (users.includes(cookie)) { //make sure not already in use
-                  cookie = makeid(30)
+      if (xssFilters.inHTMLData(creds['username'].length > 16)) {socket.emit('logged-in',{success: false, reason: 'usernames must not exceed 16 characters soz'})} else {
+      if (xssFilters.inHTMLData(creds['password1'].length > 50)) {socket.emit('logged-in',{success: false, reason: 'passwords must not exceed 50 characters soz'})} else {
+        if (xssFilters.inHTMLData(creds['password1']) == xssFilters.inHTMLData(creds['password2'])) { //check both passwords are equal
+          //check if ip has already registered
+          //database.query({text: `SELECT * FROM toads WHERE ip = '`+String(socket.handshake.address)+`';`,}).then(res => {
+            //if (res.rows[0] == undefined) {
+              database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(fes => {
+                if (fes.rows[0] == undefined) {
+                  //add user to database with sql query
+                  database.query({text: `INSERT INTO toads(handle,nname,password) VALUES($1,$2,$3)`, values: [xssFilters.inHTMLData(creds['username']), creds['username'], creds['password1']]})
+                  
+                  const cookie = makeid(30) //set id cookie of user
+                  while (users.includes(cookie)) { //make sure not already in use
+                    cookie = makeid(30)
+                  }
+                  users.push(cookie);
+                  socketids.push(socket.id);
+                  usernames.push(xssFilters.inHTMLData(creds['username']));
+                  socket.emit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
+                  console.log(database.query({text: `SELECT * FROM toads`}));
+                } else {
+                  socket.emit('logged-in',{success: false, reason: 'handle already in use, sorry king!'})
                 }
-                users.push(cookie);
-                socketids.push(socket.id);
-                usernames.push(xssFilters.inHTMLData(creds['username']));
-                socket.emit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
-                console.log(database.query({text: `SELECT * FROM toads`}));
-              } else {
-                socket.emit('logged-in',{success: false, reason: 'handle already taken, sorry king!'})
-              }
-            })
-          //} else {
-          //  socket.emit('logged-in',{success: false, reason: 'do not make more than one account please '+res.rows[0]['handle']})
-          //}
-        //})
-      } else {
-        socket.emit('logged-in',{success: false, reason: 'passwords do not match idiot'})
+              })
+            //} else {
+            //  socket.emit('logged-in',{success: false, reason: 'do not make more than one account please '+res.rows[0]['handle']})
+            //}
+          //})
+        } else {
+          socket.emit('logged-in',{success: false, reason: 'passwords do not match idiot'})
+        }
       }
+    }
     })
 
     //socket.emit('chat-message','Hello buddy, welcome to the toadchat.')

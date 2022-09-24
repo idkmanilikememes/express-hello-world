@@ -22,3 +22,8 @@ database.query(query, (err, res) => {
     console.log(res.rows)
   }
 })
+
+database.query({text: `ALTER TABLE toads MODIFY handle varchar(16);`}).then(res => {
+    console.log(res);
+    } 
+    )
