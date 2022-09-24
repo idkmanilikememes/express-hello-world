@@ -118,7 +118,6 @@ function dbquery(query) {
 
     socket.on('register', creds => { //register new user
       //check that user exists in database
-      console.log(xssFilters.inHTMLData(creds['username']).length);
       if (xssFilters.inHTMLData(creds['username']).length < 16) {
         if (xssFilters.inHTMLData(creds['password1']).length < 50) {
           if (xssFilters.inHTMLData(creds['password1']) == xssFilters.inHTMLData(creds['password2'])) { //check both passwords are equal
