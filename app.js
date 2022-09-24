@@ -64,6 +64,10 @@ function dbquery(query) {
 //socket.io server crap
   io.on('connection', socket => {
 
+    socket.on('error', (err) => {
+       console.log(err.message)
+    });
+
     socket.on('disconnect', data => {
       if (socketids.includes(socket.id)) {
         console.log(socketids)
