@@ -48,12 +48,12 @@ socket.on('new-connection', data => {
 })
 
 socket.on('old-connection', data => {
-  console.log('old connection')
+  //console.log('old connection')
   messageContainer.innerHTML = "";
   for (var i = 0; i <= data.messages.length-1; i++) {
     appendMessage(data.messages[i]);
   }
-  console.log(data)
+  //console.log(data)
 
   onlineUsersBox.innerHTML = "";
   for (var i = 0; i < data['users'].length; i++) {
