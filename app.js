@@ -22,6 +22,10 @@ app.get("/", (req, res) => { //main page
   res.sendFile(path.join(__dirname , 'resources', 'index.html'));
 });
 
+app.get("/memes", (req, res) => { //main page
+  res.sendFile(path.join(__dirname , 'resources', 'memes.html'));
+});
+
 app.get("/login", (req, res) => { //login page
   res.sendFile(path.join(__dirname , 'resources', 'login.html'));
 });
@@ -81,7 +85,7 @@ function dbquery(query) {
     socket.on('check-cookies', cookie => {
       if (users.includes(xssFilters.inHTMLData(cookie))) {
         socketids[users.indexOf(xssFilters.inHTMLData(cookie))] = socket.id;
-        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES')
+        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES'+socket.request.connection.remoteAddress)
         console.log('socket ids: '+socketids)
         tryemit('old-connection',{messages: messages, users: socketids, usernames: usernames}, socket)
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
@@ -93,6 +97,7 @@ function dbquery(query) {
     
     socket.on('login', creds => { //log a user in mate
       //check that user exists in database
+      console.log('logging someone in');
       database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(res => {
         userinfo = res.rows[0]; //set userinfo to the first row of query
         if (userinfo !== undefined) {
