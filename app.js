@@ -97,32 +97,36 @@ function dbquery(query) {
     
     socket.on('login', creds => { //log a user in mate
       //check that user exists in database
-      console.log('logging someone in');
-      database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(res => {
-        userinfo = res.rows[0]; //set userinfo to the first row of query
-        if (userinfo !== undefined) {
-          if (xssFilters.inHTMLData(creds['password']) == userinfo['password']) {
-            //console.log('successfully logged in')
-            //successfully logged in
-            const cookie = makeid(30) //set id cookie of user
-            while (users.includes(cookie)) { //make sure not already in use
-              cookie = makeid(30)
+      try {
+        console.log('logging someone in');
+        database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(res => {
+          userinfo = res.rows[0]; //set userinfo to the first row of query
+          if (userinfo !== undefined) {
+            if (xssFilters.inHTMLData(creds['password']) == userinfo['password']) {
+              //console.log('successfully logged in')
+              //successfully logged in
+              const cookie = makeid(30) //set id cookie of user
+              while (users.includes(cookie)) { //make sure not already in use
+                cookie = makeid(30)
+              }
+              users.push(cookie);
+              socketids.push(socket.id);
+              usernames.push(xssFilters.inHTMLData(creds['username']));
+              tryemit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])}, socket)
+            } else {
+              //console.log('wrong password dumby')
+              //wrong password
+              tryemit('logged-in',{success: false, reason: 'wrong password dumby'}, socket)
             }
-            users.push(cookie);
-            socketids.push(socket.id);
-            usernames.push(xssFilters.inHTMLData(creds['username']));
-            tryemit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])}, socket)
           } else {
-            //console.log('wrong password dumby')
-            //wrong password
-            tryemit('logged-in',{success: false, reason: 'wrong password dumby'}, socket)
+            //console.log('user does not exist')
+            //user does not exist
+            tryemit('logged-in',{success: false, reason: 'that user does not exist moron'}, socket)
           }
-        } else {
-          //console.log('user does not exist')
-          //user does not exist
-          tryemit('logged-in',{success: false, reason: 'that user does not exist moron'}, socket)
-        }
-      })
+        })
+      } catch(e) {
+        console.log('login error caught: '+e);
+      }
     })
 
     socket.on('register', creds => { //register new user
@@ -198,6 +202,6 @@ function tryemit(name, message, socket) {
   try {
     socket.emit(name, message);
   } catch (e) {
-    console.log('error emit caught: '+e);
+    console.log('emit error caught: '+e);
   }
 }
