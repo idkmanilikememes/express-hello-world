@@ -102,7 +102,9 @@ function dbquery(query) {
         database.query({text: `SELECT * FROM toads WHERE handle = '`+xssFilters.inHTMLData(creds['username'])+`';`,}).then(res => {
           userinfo = res.rows[0]; //set userinfo to the first row of query
           if (userinfo !== undefined) {
+            console.log('db query worked');
             if (xssFilters.inHTMLData(creds['password']) == userinfo['password']) {
+              console.log('passwords are matching');
               //console.log('successfully logged in')
               //successfully logged in
               const cookie = makeid(30) //set id cookie of user
