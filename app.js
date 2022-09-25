@@ -11,10 +11,10 @@ var xssFilters = require('xss-filters'); //sanatizer
 const cookie = require("cookie")
 const path = require('path');
 
-const users = []
-const usernames = []
+const users = [] //array of cookies used for users to login
+const usernames = [] //array of usernames that have logged in
 const messages = []
-const socketids = []
+const socketids = [] //array of socket ids (different from cookies) used to login (null if offline)
 
 process.env.PORT = 3001
 
@@ -65,15 +65,16 @@ function dbquery(query) {
   io.on('connection', socket => {
 
     socket.on('error', (err) => {
-      console.log('error fwiggen caught:' + err.message);
+      console.log('error caught:' + err.message);
     });
 
     socket.on('disconnect', (data, err) => {
-      console.log('disconnect error: '+err)
-      if (socketids.includes(socket.id)) {
-        console.log(usernames[socketids.indexOf(socket.id)]+' just left NO. socketid: ' + socket.id)
-        socketids[socketids.indexOf(socket.id)] = null;
-        socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
+      if (err) {console.log('disconnect error: '+err)} else {
+        if (socketids.includes(socket.id)) {
+          console.log(usernames[socketids.indexOf(socket.id)]+' just left NO. socketid: ' + socket.id)
+          socketids[socketids.indexOf(socket.id)] = null;
+          socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
+        }
       }
     })
 
@@ -81,11 +82,11 @@ function dbquery(query) {
       if (users.includes(xssFilters.inHTMLData(cookie))) {
         socketids[users.indexOf(xssFilters.inHTMLData(cookie))] = socket.id;
         console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES')
-        console.log(socketids)
-        socket.emit('old-connection',{messages: messages, users: socketids, usernames: usernames})
+        console.log('socket ids: '+socketids)
+        tryemit('old-connection',{messages: messages, users: socketids, usernames: usernames}, socket)
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
       } else {
-        socket.emit('new-connection',{messages: messages, users: socketids, usernames: usernames})
+        tryemit('new-connection',{messages: messages, users: socketids, usernames: usernames}, socket)
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
       }
     })
@@ -105,16 +106,16 @@ function dbquery(query) {
             users.push(cookie);
             socketids.push(socket.id);
             usernames.push(xssFilters.inHTMLData(creds['username']));
-            socket.emit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
+            tryemit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])}, socket)
           } else {
             //console.log('wrong password dumby')
             //wrong password
-            socket.emit('logged-in',{success: false, reason: 'wrong password dumby'})
+            tryemit('logged-in',{success: false, reason: 'wrong password dumby'}, socket)
           }
         } else {
           //console.log('user does not exist')
           //user does not exist
-          socket.emit('logged-in',{success: false, reason: 'that user does not exist moron'})
+          tryemit('logged-in',{success: false, reason: 'that user does not exist moron'}, socket)
         }
       })
     })
@@ -139,10 +140,10 @@ function dbquery(query) {
                     users.push(cookie);
                     socketids.push(socket.id);
                     usernames.push(xssFilters.inHTMLData(creds['username']));
-                    socket.emit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])})
+                    tryemit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])}, socket)
                     console.log(database.query({text: `SELECT * FROM toads`}));
                   } else {
-                    socket.emit('logged-in',{success: false, reason: 'handle already in use, sorry king!'})
+                    tryemit('logged-in',{success: false, reason: 'handle already in use, sorry king!'}, socket)
                   }
                 })
               //} else {
@@ -150,24 +151,22 @@ function dbquery(query) {
               //}
             //})
           } else {
-            socket.emit('logged-in',{success: false, reason: 'passwords do not match idiot'})
+            tryemit('logged-in',{success: false, reason: 'passwords do not match idiot'}, socket)
           }
         } else {
-          socket.emit('logged-in',{success: false, reason: 'passwords must not exceed 50 characters soz'})
+          tryemit('logged-in',{success: false, reason: 'passwords must not exceed 50 characters soz'}, socket)
         }
       } else {
-        socket.emit('logged-in',{success: false, reason: 'usernames must not exceed 16 characters soz'})
+        tryemit('logged-in',{success: false, reason: 'usernames must not exceed 16 characters soz'}, socket)
       }
     })
-
-    //socket.emit('chat-message','Hello buddy, welcome to the toadchat.')
 
     socket.on('send-chat-message', message => { //message recieved
       var cookies = cookie.parse(xssFilters.inHTMLData(socket.handshake.headers.cookie));
       if (cookies['session-id'] !== null && users.includes(cookies['session-id'])) {
         message = usernames[users.indexOf(cookies['session-id'])]+": "+xssFilters.inHTMLData(message);
         console.log(message)
-        socket.emit('chat-message', message)
+        tryemit('chat-message', message, socket)
         socket.broadcast.emit('chat-message', message)
         messages.push(message);
       }
@@ -179,7 +178,7 @@ server.listen(process.env.PORT, () => {
   console.log('listening on *:3001');
 });
 
-function makeid(length) {
+function makeid(length) { //make an id for user
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
@@ -188,4 +187,12 @@ function makeid(length) {
  charactersLength));
    }
    return result;
-} //make an id for user
+} 
+
+function tryemit(name, message, socket) {
+  try {
+    socket.emit(name, message);
+  } catch (e) {
+    console.log('error emit caught: '+e);
+  }
+}
