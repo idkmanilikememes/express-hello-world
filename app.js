@@ -107,13 +107,20 @@ function dbquery(query) {
               console.log('passwords are matching');
               //console.log('successfully logged in')
               //successfully logged in
-              const cookie = makeid(30) //set id cookie of user
+              var cookie = makeid(30) //set id cookie of user
               while (users.includes(cookie)) { //make sure not already in use
                 cookie = makeid(30)
               }
-              users.push(cookie);
-              socketids.push(socket.id);
-              usernames.push(xssFilters.inHTMLData(creds['username']));
+
+              //check if user already in users list and then add them in appropriately
+              if (usernames.includes(xssFilters.inHTMLData(creds['username']))) {
+                users[usernames.indexOf(xssFilters.inHTMLData(creds['username']))] = cookie;
+                socketids[usernames.indexOf(xssFilters.inHTMLData(creds['username']))] = socket.id;
+              } else {
+                users.push(cookie);
+                socketids.push(socket.id);
+                usernames.push(xssFilters.inHTMLData(creds['username']));
+              }
               tryemit('logged-in',{success: true, cookie: cookie, name: xssFilters.inHTMLData(creds['username'])}, socket)
             } else {
               //console.log('wrong password dumby')
