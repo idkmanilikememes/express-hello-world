@@ -38,10 +38,9 @@ app.get("/jackquest", (req, res) => { //register page
   res.sendFile(path.join(__dirname , 'resources', 'games/jackquest/index.html'));
 });
 
-
 //this is database shit, initiallisign ing it
   const { Client } = require('pg');
-  const database = new Client({
+  var database = new Client({
     connectionString: 'postgres://epicness_user:Ql9Ks2Ax592y5WTmV8CH6w1K4WlkXGsf@dpg-cccp166n6mpkorrfdv20-a.oregon-postgres.render.com/epicness?ssl=true',
   })
   database.connect(err => { //connect to db
@@ -51,6 +50,21 @@ app.get("/jackquest", (req, res) => { //register page
       console.log('db connected')
     }
   })
+
+  //every 2 minutes leave and rejoin db to ensure it doesn't break
+  const refreshdatabase = setInterval(function() {
+    database.end();
+    database = new Client({
+      connectionString: 'postgres://epicness_user:Ql9Ks2Ax592y5WTmV8CH6w1K4WlkXGsf@dpg-cccp166n6mpkorrfdv20-a.oregon-postgres.render.com/epicness?ssl=true',
+    })
+    database.connect(err => { //connect to db
+      if (err) {
+        console.error('db connection error', err.stack)
+      } else {
+        console.log('db connected')
+      }
+    })
+ }, 120000);
 
 function dbquery(query) {
   var result
@@ -85,7 +99,7 @@ function dbquery(query) {
     socket.on('check-cookies', cookie => {
       if (users.includes(xssFilters.inHTMLData(cookie))) {
         socketids[users.indexOf(xssFilters.inHTMLData(cookie))] = socket.id;
-        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES'+socket.request.connection.remoteAddress)
+        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES '+socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address)
         console.log('socket ids: '+socketids)
         tryemit('old-connection',{messages: messages, users: socketids, usernames: usernames}, socket)
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
