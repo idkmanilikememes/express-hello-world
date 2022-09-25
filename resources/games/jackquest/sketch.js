@@ -100,7 +100,7 @@ function draw() {
             strokeWeight(4);
             textSize(23);
             textWrap(WORD);
-            let jacksstring = 'Write a long story about a boy called Jack who gets kidnapped by witches and forced to take a pill which will extremely painfully and extremely slowly transform him into a monkey, depicting his transforming, ears, eyes, mouth, face, teeth, torso, new tail, arms, hands and legs in vile, horrible, gruesome, and gory detail, with his feet being the most disgusting, gory, painful and detailed part, and he loses the ability to talk.'
+            let jacksstring = '"Write a long story about a boy called Jack who gets kidnapped by witches and forced to take a pill which will extremely painfully and extremely slowly transform him into a monkey, depicting his transforming, ears, eyes, mouth, face, teeth, torso, new tail, arms, hands and legs in vile, horrible, gruesome, and gory detail, with his feet being the most disgusting, gory, painful and detailed part, and he loses the ability to talk."'
             text(jacksstring.substring(0, int((bi-biwhenstarted)/4)),0,0,400,400);
           } else {
             interacting = false;
