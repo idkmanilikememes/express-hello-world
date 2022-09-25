@@ -20,10 +20,12 @@ function setup() {
   createCanvas(400, 400);
   let directory = "games/jackquest/"
   song = loadSound(directory+'song.mp3');
+  deathsong = loadSound(directory+'jackcry.ogg');
   jacks = loadImage(directory+'jack.png');
   mapp = loadImage(directory+'map.png');
   witch = loadImage(directory+'pill.png');
   witchless = loadImage(directory+'pilless.png');
+  awesome = loadImage(directory+'awesome.gif');
 }
 
 function draw() {
@@ -81,10 +83,25 @@ function draw() {
             if (jframe > 28) {
               eatpill = false;
               song.stop();
+              deathsong.setVolume(0.0);
+              deathsong.loop();
+              biwhenstarted = bi;
               jframe = 28;
             }
           } else if (eatingpill) {
-            
+            deathsong.setVolume(1.0,15);
+            if (((bi-biwhenstarted)/10)-50 < 255) {
+              tint(255,255,255,int((bi-biwhenstarted)/10)-50);
+            }
+            image(awesome,0,0,400,400);
+            colorMode(RGB, 100);
+            fill(255,255,255)
+            stroke(0);
+            strokeWeight(4);
+            textSize(23);
+            textWrap(WORD);
+            let jacksstring = 'Write a long story about a boy called Jack who gets kidnapped by witches and forced to take a pill which will extremely painfully and extremely slowly transform him into a monkey, depicting his transforming, ears, eyes, mouth, face, teeth, torso, new tail, arms, hands and legs in vile, horrible, gruesome, and gory detail, with his feet being the most disgusting, gory, painful and detailed part, and he loses the ability to talk.'
+            text(jacksstring.substring(0, int((bi-biwhenstarted)/4)),0,0,400,400);
           } else {
             interacting = false;
           }
