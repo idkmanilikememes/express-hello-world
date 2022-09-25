@@ -19,7 +19,7 @@ function setup() {
   frameRate(60);
   createCanvas(400, 400);
   let directory = "games/jackquest/"
-  song = loadSound(directory+'song.mp3');
+  song = loadSound(directory+'song.ogg');
   deathsong = loadSound(directory+'jackcry.ogg');
   jacks = loadImage(directory+'jack.png');
   mapp = loadImage(directory+'map.png');
