@@ -64,7 +64,7 @@ app.get("/jackquest", (req, res) => { //register page
         console.log('db connected')
       }
     })
- }, 120000);
+ }, 240000);
 
 function dbquery(query) {
   var result
@@ -99,7 +99,14 @@ function dbquery(query) {
     socket.on('check-cookies', cookie => {
       if (users.includes(xssFilters.inHTMLData(cookie))) {
         socketids[users.indexOf(xssFilters.inHTMLData(cookie))] = socket.id;
-        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES '+socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address)
+
+        var ip = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address;
+        if (ip) {
+          if (ip.substr(0, 7) == "::ffff:") {
+            ip = ip.substr(7)
+          }
+        }
+        console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES '+ip)
         console.log('socket ids: '+socketids)
         tryemit('old-connection',{messages: messages, users: socketids, usernames: usernames}, socket)
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
