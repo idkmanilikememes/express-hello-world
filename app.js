@@ -103,7 +103,7 @@ function dbquery(query) {
         var ip = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address;
         if (ip) {
           if (ip.substr(0, 7) == "::ffff:") {
-            ip = ip.substr(7)
+            ip = ip.substr(7).split(',')[0]
           }
         }
         console.log(usernames[users.indexOf(xssFilters.inHTMLData(cookie))]+' just joined YES '+ip)
