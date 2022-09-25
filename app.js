@@ -65,16 +65,15 @@ function dbquery(query) {
   io.on('connection', socket => {
 
     socket.on('error', (err) => {
-       console.log(err.message)
+      console.log('error fwiggen caught:' + err.message);
     });
 
-    socket.on('disconnect', data => {
+    socket.on('disconnect', (data, err) => {
+      console.log('disconnect error: '+err)
       if (socketids.includes(socket.id)) {
-        console.log(socketids)
-        console.log(usernames[socketids.indexOf(socket.id)]+' just left NO')
+        console.log(usernames[socketids.indexOf(socket.id)]+' just left NO. socketid: ' + socket.id)
         socketids[socketids.indexOf(socket.id)] = null;
         socket.broadcast.emit('update-onlines', {users: socketids, usernames: usernames})
-        console.log(socketids)
       }
     })
 
